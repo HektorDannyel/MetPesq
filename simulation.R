@@ -5,6 +5,7 @@ create_universe <- function(kids_total = 10, album_size = 100, kid_class = "bi")
   assign("kids", eval(parse(text = paste0("structure(list(", paste0("kid", 1:kids_total, collapse = ", "), "), class = c('kids', '", kid_class,"'))"))), envir = .GlobalEnv)
   assign("kid_class", c("kids", kid_class), envir = .GlobalEnv)
   assign("album_size", album_size, envir = .GlobalEnv)
+  # hufflepuffs <- matrix(0, ncol = )
 }
 
 putcards <- function(x, ...){
@@ -44,7 +45,8 @@ buycards <- function(x, ...){
 }
 
 buycards.kids <- function(kids_b, total_cards = album_size, pack_size = 5){
-  for(i in 1:length(kids_b)){
+  buy_qt <- rep(length(kids_b), sample(0:5, length(kids_b), TRUE, dnorm(0:5, 2, .5)))
+  for(i in buy_qt){
     pack <- sort(sample(total_cards, pack_size, TRUE))
     kids_b[[i]] <- structure(putcards(kids_b[[i]], pack), class = kid_class)
   }
