@@ -5,7 +5,7 @@ create_universe <- function(kids_total = 10, album_size = 100, kid_class = "bi")
   assign("kids", eval(parse(text = paste0("structure(list(", paste0("kid", 1:kids_total, collapse = ", "), "), class = c('kids', '", kid_class,"'))"))), envir = .GlobalEnv)
   assign("kid_class", c("kids", kid_class), envir = .GlobalEnv)
   assign("album_size", album_size, envir = .GlobalEnv)
-  # hufflepuffs <- matrix(0, ncol = )
+  assign("hufflepuffs", matrix(runif(kids_total^2), ncol = kids_total, nrow = kids_total), envir = .GlobalEnv)
 }
 
 putcards <- function(x, ...){
@@ -45,7 +45,7 @@ buycards <- function(x, ...){
 }
 
 buycards.kids <- function(kids_b, total_cards = album_size, pack_size = 5){
-  buy_qt <- rep(length(kids_b), sample(0:5, length(kids_b), TRUE, dnorm(0:5, 2, .5)))
+  buy_qt <- rep(1:length(kids_b), sample(0:5, length(kids_b), TRUE, dnorm(0:5, 2, .5)))
   for(i in buy_qt){
     pack <- sort(sample(total_cards, pack_size, TRUE))
     kids_b[[i]] <- structure(putcards(kids_b[[i]], pack), class = kid_class)
@@ -82,6 +82,13 @@ encounter.kids <- function(kids_e){
   if(dim(meet)[2] > 1){
     meet <- meet[,sample(1:dim(meet)[2], dim(meet)[2], FALSE)]
   }
+  for(i in 1:dim(meet)[2]){
+    d100 <- runif(1)
+    if(d100 > hufflepuffs[meet[1, i], meet[2, i]]){
+      meet[1, i] <- meet[2, i] <- 0
+    }
+  }
+  meet <- meet[,-which(meet[1,] == 0)]
   return(meet)
 }
 
@@ -150,22 +157,18 @@ trade.bi <- function(kids_tb){
   if(length(kids_tb) > 1){
   
     meet <- encounter(kids_tb)
-  
-    for(i in 1:dim(meet)[2]){
-      k1 <- meet[1, i]
-      k2 <- meet[2, i]
-      k1.stock <- stock(kids_tb, k1, k2)
-      k2.stock <- stock(kids_tb, k2, k1)
+    
+    if(dim(meet)[1] > 0){
+      for(i in 1:dim(meet)[2]){
+        k1 <- meet[1, i]
+        k2 <- meet[2, i]
+        k1.stock <- stock(kids_tb, k1, k2)
+        k2.stock <- stock(kids_tb, k2, k1)
       
-      if(!length(k1.stock) == 0 & !length(k2.stock) == 0){
-        k <- min(length(k1.stock), length(k2.stock))
-        # if(length(k1.stock) > 1){
-        #   k1.stock <- sample(k1.stock, k, FALSE)
-        # }
-        # if(length(k2.stock) > 1){
-        #   k2.stock <- sample(k2.stock, k, FALSE)
-        # }
-        kids_tb <- swap.kids(kids_tb, k1, k2, k1.stock, k2.stock)
+        if(!length(k1.stock) == 0 & !length(k2.stock) == 0){
+          k <- min(length(k1.stock), length(k2.stock))
+          kids_tb <- swap.kids(kids_tb, k1, k2, k1.stock, k2.stock)
+        }
       }
     }
   }
@@ -177,25 +180,44 @@ trade.uni <- function(kids_tu){
   if(length(kids_tu) > 1){
     meet <- encounter(kids_tu)
     
-    for(i in 1:dim(meet)[2]){
-      k1 <- meet[1, i]
-      k2 <- meet[2, i]
-      k1.stock <- stock(kids_tu, k1, k2)
-      k2.stock <- stock(kids_tu, k2, k1)
-      
-      k1.extra <- getcards(kids_tu, k1, "stock")
-      k2.extra <- getcards(kids_tu, k2, "stock")
     
-      if((!length(k1.stock) == 0 | !length(k2.stock) == 0) & (length(k1.extra > 0) > 0 & length(k2.extra > 0) > 0)){
-        kids_tu <- swap(kids_tu, k1, k2, k1.stock, k2.stock)
+    if(dim(meet)[1] > 0){
+      for(i in 1:dim(meet)[2]){
+        k1 <- meet[1, i]
+        k2 <- meet[2, i]
+        k1.stock <- stock(kids_tu, k1, k2)
+        k2.stock <- stock(kids_tu, k2, k1)
+      
+        k1.extra <- getcards(kids_tu, k1, "stock")
+        k2.extra <- getcards(kids_tu, k2, "stock")
+    
+        if((!length(k1.stock) == 0 | !length(k2.stock) == 0) & (length(k1.extra > 0) > 0 & length(k2.extra > 0) > 0)){
+          kids_tu <- swap(kids_tu, k1, k2, k1.stock, k2.stock)
+        }
       }
     }
   }  
   return(kids_tu)
 }
 
+tkids <- 20
 
-create_universe(3, 30, "bi")
+trials <- data.frame(uni = numeric(5),
+                     bi = numeric(5))
+
+trials$uni <- replicate(5, {
+
+create_universe(tkids, 40, "uni")
+
+for(i in 1:length(kids)){
+  for(j in 1:length(kids)){
+    if(i == j){
+      hufflepuffs[i, j] <- 0
+    } else {
+      hufflepuffs[j, i] <- hufflepuffs[i, j]
+    }
+  }
+}
   
 len <- length(kids)
 i <- 0
@@ -218,7 +240,9 @@ while(len > 0){
   len <- length(kids)
   
   if(len == 0){
-    print(paste0("O total de iterações necessárias para completar toda a coleção foi: ", i))
+    return(i)
   }
   
 }
+})
+

@@ -1,0 +1,125 @@
+---
+title: "Relações ecológicas na troca de cromos ilustrados"
+author: "Caroline Martins Selis e Hektor Dannyel Vieira Brasil"
+date: "22 de junho de 2018"
+output: 
+  pdf_document:
+    toc: true
+---
+
+## Relações ecológicas
+
+  Relações ecológicas são comportamentos observados no relacionamento de espécies de seres vivos, entre si e com a natureza. Elas podem ter um caráter benéfico, onde a presença de uma favorece  a outra. 
+  Das relações observadas, duas são de interesse para este projeto: Protocooperação e Comensalismo.
+  
+  - Na **protocooperação**, as espécies observadas trazem benefícios umas às outras. No entanto, essa relação não é vital. Por exemplo, a relação entre as abelhas e as flores. As abelhas extraem o pólen das flores, que são polinizadas no processo.
+  - No **comensalismo**, as espécies observadas se aproveitam de outras para adquirir comida, sem prejuízos. Um exemplo é o urubu, que se alimenta da carcaça de animais deixados por predadores que já terminaram de comer.
+  
+  Agora, com algumas adaptações, podemos observar comportamentos semelhantes na sociedade humana. 
+  
+## O problema da troca de cromos
+  
+  O projeto procura entender que tipo de relação é mais benéfica para crianças que colecionam cromos ilustrados e os trocam entre sí.
+  
+  - O **comensalismo** pode ser traduzido para uma estratégia de troca **unilateral**, onde trocas acontecerão mesmo quando não existir um benefício absoluto para uma das partes. Por exemplo: numa troca onde uma das crianças deseja 3 cromos e a outra deseja somente 2, um cromo aleatório é acrescido à troca, para compensar a criança que está oferecendo a terceira carta de interesse.
+  - Já a **protocooperação** pode ser vista como uma estratégia **bilateral**, onde a troca só acontece quando é igualmente benéfica para ambas as crianças. Por exemplo: na mesma situação acima, a terceira carta não seria trocada. Se uma criança só pode oferecer duas cartas, ela também somente receberá duas cartas.
+  
+  Mais um detalhe foi considerado no problema, para tentar aproximá-lo da realidade:
+  
+  - Cada início de rodada, todas as crianças vão comprar de 1 a 5 pacotes de cromos. A probabilidade de compra de pacotes segue a distribuição abaixo.
+  
+```{r, echo = FALSE, fig.width=5, fig.height=3, fig.align='center'}
+
+library(ggplot2)
+
+distrib <- data.frame(x = 1:5, y = dnorm(1:5, 2, .5))
+
+ggplot(distrib, aes(x = x, xend = x, y = 0, yend = y)) + 
+  ylab("P(X=x)") + xlab("Pacotes comprados") +
+  geom_segment() +
+  labs(caption = "Gráfico 1: Distribuição da compra de pacotes de cromos") +
+  theme(plot.caption = element_text(hjust = .5))
+
+```
+  
+  Tendo isso em mente, o problema agora pode ser transformado em um algoritmo computacional. O fluxograma pode ser observado abaixo.
+  
+\bigskip
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=11cm]{~/Projects/RBras-2018/flow_chart.jpeg}
+\caption{Fluxograma}
+\end{figure}
+
+## Contextualização em Teoria dos Jogos
+
+Carol
+
+## Análise dos dados
+
+```{r, echo = FALSE}
+dados <- read.table("~/Projects/MetPesq/trials.txt", sep = ",", head = T)
+```
+
+Foram definidos universos contendo 40 indivíduos, cada um com um álbum com 80 cromos. Após 1000 replicações:
+
+  - A estratégia de troca unilateral mostrou média de `r mean(dados$uni)` iterações para finalizar cada álbum, com desvio padrão de `r sd(dados$uni)`. 
+  - A estratégia de troca bilateral mostrou média de `r mean(dados$bi)` iterações para finalizar cada álbum, com desvio padrão de `r sd(dados$bi)`. 
+
+\bigskip
+
+```{r, echo = FALSE, message=FALSE, warning=FALSE}
+
+library(gridExtra)
+
+dp1 <- ggplot(dados, aes(uni)) + 
+  geom_dotplot() + ylab("") + xlab("Iterações") +
+  labs(title = "Estratégia unilateral",
+       caption = "Gráfico 3: Repetições da estratégia unilateral") +
+  theme(plot.title = element_text(hjust = .5),
+        plot.caption = element_text(hjust = .5))
+
+dp2 <- ggplot(dados, aes(bi)) +
+  geom_dotplot() + ylab("") + xlab("Iterações") +
+  labs(title = "Estratégia bilateral",
+       caption = "Gráfico 4: Repetições da estratégia bilateral") +
+  theme(plot.title = element_text(hjust = .5),
+        plot.caption = element_text(hjust = .5))
+
+grid.arrange(dp1, dp2, ncol = 2)
+```
+
+## Conclusão
+
+Em média, não há muita diferença entre as estratégias de troca. No entanto, a estratégia unilateral apresenta menor variabilidade, garantindo que todos os indivíduos finalizem seus álbuns entre 47 e 49 rodadas. Assim, podemos inferir que a estratégia mais altruista favorece o melhor cenário de trocas.
+
+## Contextualização nas sete etapas da pesquisa
+
+### Primeira etapa: a questão inicial
+
+  Procurava-se entender qual estratégia de troca (unilateral ou bilateral) era mais propícia para a troca de cromos ilustrados. 
+  
+### Segunda etapa: a exploração do tema
+  
+  A abordagem proposta foi utilizar uma simulação Montecarlo para a obtenção de resultados. Para isso, os aspectos caracterizados em casa estratégia de troca seriam emulados.
+  
+### Terceira etapa: a problemática
+  
+  Foi necessário levar em consideração como as trocas aconteceriam no mundo real. Para isso, foram adicionados alguns fatores de aleatoriedade, como a quantidade de pacotes comprados por rodada e a ordem de encontro entre os indivíduos. Certamente a etapa mais difícil é identificar que características devem ser consideradas e como transformá-las em algoritmos.
+  
+### Quarta etapa: a construção do modelo em análise
+  
+  Uma vez tendo os dados, uma maneira simples de avaliar qual das estratégias mais favorece as trocas é replicar as simulações diversas vezes e anotar a quantidade necessária de iterações para que os álbuns fossem finalizados. A partir daí, análises descritivas podem dar uma boa ideia do resultado.
+  
+### Quinta etapa: a coleta de dados
+  
+  Na simulação, foi definido que 40 crianças realizariam a troca de cromos, para um álbum de tamanho 80. A simulação foi replicada 1000 vezes para cada comportamento de troca, sendo que no final de cada simulação era anotada a quantidade de iterações (ou rodadas) necessárias para que todos finalizassem a coleção. 
+  
+### Sexta etapa: a análise das informações
+  
+  Foi realizada uma análise descritiva para avaliar a diferença entre as estratégias de troca.
+  
+### Sétima etapa: as conclusões
+  
+  Foi observado que a estratégia unilateral é mais rápida e mais estável. Ao longo das 1000 repetições, a variabilidade foi mínima.
