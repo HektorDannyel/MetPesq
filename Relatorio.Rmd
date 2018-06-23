@@ -52,10 +52,6 @@ ggplot(distrib, aes(x = x, xend = x, y = 0, yend = y)) +
 \caption{Fluxograma}
 \end{figure}
 
-## Contextualização em Teoria dos Jogos
-
-Carol
-
 ## Análise dos dados
 
 ```{r, echo = FALSE}
